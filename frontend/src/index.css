@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #16283D;
+  --color-navy: #1F3A5F;
+  --color-navy-deep: #122238;
+  --color-sky: #EAF2FA;
+  --color-salmon: #FF8B75;
+  --color-salmon-soft: #FFD9CF;
+  --color-slate: #5D7A98;
+  --color-slate-light: #CFDEEA;
+  --color-member-a: #FF8B75;
+  --color-member-b: #1F3A5F;
+  --color-member-c: #7FB0D6;
+  --color-member-d: #F4C9BF;
+  --color-member-e: #3E6E8E;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: Inter, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
