@@ -1,47 +1,72 @@
-import { useState } from "react";
-
-interface Group {
-  id: string;
-  name: string;
-}
-
-const groups: Group[] = [
-  { id: '1', name: 'Roomies — Flat 4B' },
-  { id: '2', name: 'Mndi Household' },
-  { id: '3', name: 'Res Cleanup Squad' },
-];
+// pages/Groups.tsx
+import { useState } from 'react';
+import { groups as initialGroups } from '../data/mockGroups';
 
 function Groups() {
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const selectedGroup = groups.find(g => g.id === selectedId) ?? null;
+  const [groups, setGroups] = useState(initialGroups);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+
+  const startRename = (id: string, currentName: string) => {
+    setRenamingId(id);
+    setDraftName(currentName);
+  };
+
+  const saveRename = (id: string) => {
+    setGroups(prev => prev.map(g => (g.id === id ? { ...g, name: draftName } : g)));
+    setRenamingId(null);
+  };
+
+  const deleteGroup = (id: string) => {
+    setGroups(prev => prev.filter(g => g.id !== id));
+  };
 
   return (
-    <div className="master-detail">
-      <div className="master-list">
-        {groups.map(g => (
-          <button
-            key={g.id}
-            className={`group-btn ${g.id === selectedId ? 'active' : ''}`}
-            onClick={() => setSelectedId(g.id)}
-          >
-            {g.name}
-          </button>
-        ))}
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-display text-xl text-navy-deep">Manage groups</h2>
+        <button className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg">
+          + New group
+        </button>
       </div>
 
-      <div className="detail-panel">
-        {selectedGroup ? (
-          <GroupDetails group={selectedGroup} />
-        ) : (
-          <div className="empty-state">Nothing to display</div>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {groups.map(g => (
+          <div key={g.id} className="bg-white border border-slate-light rounded-xl p-4 flex items-center justify-between">
+            {renamingId === g.id ? (
+              <input
+                autoFocus
+                value={draftName}
+                onChange={e => setDraftName(e.target.value)}
+                onBlur={() => saveRename(g.id)}
+                onKeyDown={e => e.key === 'Enter' && saveRename(g.id)}
+                className="border border-slate-light rounded-md px-2 py-1 text-sm flex-1 mr-3"
+              />
+            ) : (
+              <div>
+                <div className="font-display font-semibold text-sm">{g.name}</div>
+                <div className="text-[11px] font-mono text-slate mt-0.5">{g.taskCount} chores</div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => startRename(g.id, g.name)}
+                className="text-xs font-semibold text-slate hover:text-navy-deep"
+              >
+                Rename
+              </button>
+              <button
+                onClick={() => deleteGroup(g.id)}
+                className="text-xs font-semibold text-salmon hover:text-[#A44A36]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
-function GroupDetails({ group }: { group: Group }) {
-  return <h2>{group.name}</h2>; 
-}
-
-export default Groups
+export default Groups;

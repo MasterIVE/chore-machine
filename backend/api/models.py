@@ -13,11 +13,17 @@ class Task(models.Model):
     task_status_choices = [('not started', 'Not Started'),
         ('in progress', 'In Progress'), ('completed', 'Completed')]
 
+    task_level_choices = [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5')]
+
+    task_frequency_choices = [('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')]    
+
     taskName = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Grouping, on_delete=models.CASCADE, related_name='tasks')
     status = models.CharField(max_length=20, choices=task_status_choices, default='not started')
+    level = models.CharField(max_length=10, choices=task_level_choices, default='1')
+    frequency = models.CharField(max_length=10, choices=task_frequency_choices, default='weekly')
 
     def __str__(self):
         return self.taskName
