@@ -4,6 +4,7 @@ import { members } from '../data/mockMembers';
 
 const filters = ['All', 'Unassigned', 'Kitchen', 'Bathroom', 'Outdoor'] as const;
 
+
 function GroupTasks() {
   const [tasks, setTasks] = useState(initialTasks);
   const [activeFilter, setActiveFilter] = useState<typeof filters[number]>('All');
@@ -12,6 +13,10 @@ function GroupTasks() {
     setTasks(prev =>
       prev.map(t => (t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t))
     );
+  };
+
+  const deleteTask = (id: string) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
   };
 
   const visible = tasks.filter(t => {
@@ -53,6 +58,13 @@ function GroupTasks() {
                     task.status === 'done' ? 'bg-navy border-navy' : 'border-slate-light'
                   }`}
                 />
+
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="text-xs font-semibold text-salmon hover:text-[#A44A36]"
+              >
+                Delete
+              </button>
               </div>
               <div className="flex items-center gap-1.5 mt-2.5">
                 <span className={`w-2.5 h-2.5 rounded-[50%_50%_50%_0] rotate-45 bg-${assignee?.color}`} />

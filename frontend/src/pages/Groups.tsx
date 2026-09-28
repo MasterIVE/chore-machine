@@ -1,11 +1,16 @@
 // pages/Groups.tsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { groups as initialGroups } from '../data/mockGroups';
+import Modal from '../components/addModal';
+
 
 function Groups() {
   const [groups, setGroups] = useState(initialGroups);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+
+
 
   const startRename = (id: string, currentName: string) => {
     setRenamingId(id);
@@ -25,9 +30,12 @@ function Groups() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-display text-xl text-navy-deep">Manage groups</h2>
-        <button className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg">
-          + New group
-        </button>
+
+          <button className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg  hover:bg-ink hover:text-white" onClick={() => setIsOpen(true)}>
+            + New group
+          </button>
+ 
+        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -66,6 +74,20 @@ function Groups() {
           </div>
         ))}
       </div>
+
+      <Modal open={isOpen} onClose={() => setIsOpen(false)}>
+        <form>
+          <label htmlFor="groupName">Group Name</label>
+          <input
+            type="text"
+            id="groupName"
+            placeholder="Enter group name"
+          />
+          <button type="submit" className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ink hover:text-white">
+            Add Group
+          </button>                                     
+        </form>
+      </Modal>
     </div>
   );
 }
