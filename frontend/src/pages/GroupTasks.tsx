@@ -78,8 +78,8 @@ function GroupTasks() {
       </div>
 
       {/* FAB */}
-      <button className="fixed bottom-8 right-8 w-13 h-13 rounded-[50%_50%_50%_0] bg-salmon text-ink shadow-lg shadow-salmon/50 flex items-center justify-center">
-        <a href="*"><span className="text-2xl font-bold">+</span></a>
+      <button className="fixed bottom-8 right-8 w-13 h-13 rounded-[50%_50%_50%_0] bg-salmon text-ink shadow-lg shadow-salmon/50 flex items-center justify-center hover:bg-navy hover:*:text-white transition-colors">
+        <i className="fa-solid fa-plus"></i>
       </button>
     </div>
   );

@@ -76,12 +76,13 @@ function Groups() {
       </div>
 
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
-        <form>
+        <form className="flex flex-col gap-3">
           <label htmlFor="groupName">Group Name</label>
           <input
             type="text"
             id="groupName"
             placeholder="Enter group name"
+            className="border border-slate-light rounded-md px-2 py-1 text-sm flex-1 mr-3"
           />
           <button type="submit" className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ink hover:text-white">
             Add Group

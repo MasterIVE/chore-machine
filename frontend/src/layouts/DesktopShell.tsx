@@ -35,7 +35,7 @@ function DesktopShell({ children }: { children: React.ReactNode }) {
           </NavLink>
         ))}
 
-        <button className="mt-auto bg-salmon text-ink font-display font-semibold text-[13px] py-2.5 rounded-lg hover:bg-white/5 hover:text-white">
+        <button className="mt-auto bg-salmon text-ink font-display font-semibold text-[13px] py-2.5 rounded-lg hover:bg-white/8 hover:*:text-white transition-colors">
           <a href={`/groups/${id}`}>+ New group</a>
         </button>
       </aside>
