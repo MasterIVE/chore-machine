@@ -32,7 +32,7 @@ class Member(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memberships')
     name = models.CharField(max_length=100)
     group = models.ForeignKey(Grouping, on_delete=models.CASCADE, related_name='members')
-   
+    role = models.CharField(max_length=50, blank=True)
     
 
     def __str__(self):

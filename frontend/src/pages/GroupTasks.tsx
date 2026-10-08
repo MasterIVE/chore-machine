@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { tasks as initialTasks } from '../data/mockTasks';
 import { members } from '../data/mockMembers';
+import Modal from '../components/addModal';
 
 const filters = ['All', 'Unassigned', 'Kitchen', 'Bathroom', 'Outdoor'] as const;
 
@@ -8,6 +9,7 @@ const filters = ['All', 'Unassigned', 'Kitchen', 'Bathroom', 'Outdoor'] as const
 function GroupTasks() {
   const [tasks, setTasks] = useState(initialTasks);
   const [activeFilter, setActiveFilter] = useState<typeof filters[number]>('All');
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleDone = (id: string) => {
     setTasks(prev =>
@@ -69,7 +71,7 @@ function GroupTasks() {
               <div className="flex items-center gap-1.5 mt-2.5">
                 <span className={`w-2.5 h-2.5 rounded-[50%_50%_50%_0] rotate-45 bg-${assignee?.color}`} />
                 <span className="text-[11.5px] font-mono text-slate">
-                  {assignee?.name} · {task.frequency}
+                 {task.frequency}
                 </span>
               </div>
             </div>
@@ -78,9 +80,36 @@ function GroupTasks() {
       </div>
 
       {/* FAB */}
-      <button className="fixed bottom-8 right-8 w-13 h-13 rounded-[50%_50%_50%_0] bg-salmon text-ink shadow-lg shadow-salmon/50 flex items-center justify-center hover:bg-navy hover:*:text-white transition-colors">
+      <button className="fixed bottom-8 right-8 w-13 h-13 rounded-[50%_50%_50%_0] bg-salmon text-ink shadow-lg shadow-salmon/50 flex items-center justify-center hover:bg-navy hover:*:text-white transition-colors" onClick={() => setIsOpen(true)}>
         <i className="fa-solid fa-plus"></i>
       </button>
+
+
+      <Modal open={isOpen} onClose={() => setIsOpen(false)}>
+        <form className="flex flex-col gap-3">
+          <label htmlFor="taskTitle">Task Title</label>
+          <input
+            type="text"
+            id="taskTitle"
+            placeholder="Enter task title"
+            className="border border-slate-light rounded-md px-2 py-1 text-sm flex-1 mr-3"
+            required
+          />
+          <label htmlFor="taskFrequency">Task Frequency</label>
+          <select id="taskFrequency"  className="border border-slate-light rounded-md px-2 py-1 text-sm flex-1 mr-3" required>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+
+          <button type="submit" className="bg-salmon text-ink font-display font-semibold text-sm px-4 py-2 rounded-lg hover:bg-ink hover:text-white">
+            Add Task
+          </button>                                     
+        </form>
+      </Modal>
+
     </div>
   );
 }
