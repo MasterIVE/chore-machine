@@ -13,7 +13,6 @@ function DesktopShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-sky font-body text-ink">
       <aside className="w-56 shrink-0 bg-navy-deep text-white p-5 flex flex-col">
         <div className="flex items-center gap-2 mb-7 font-display font-bold text-base">
-          <span className="w-5.5 h-5.5 rounded-tl-full rounded-tr-full rounded-bl-full bg-salmon rotate-45" />
           Chore Machine
         </div>
 
