@@ -1,5 +1,7 @@
 // pages/Groups.tsx
 import { useState, type ChangeEvent, type SubmitEvent } from 'react';
+import axios from 'axios';
+import api from '../api';
 import { groups as initialGroups } from '../data/mockGroups';
 import Modal from '../components/addModal';
 
@@ -66,41 +68,42 @@ function Groups() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/groups/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim() }),
+      const { data: created } = await api.post<Group>('/api/groups/', {
+        name: form.name.trim(),
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-
-        if (res.status === 400) {
-          // DRF validation shape, e.g. { name: ["This field may not be blank."] }
-          const serverErrors: Errors = {};
-          for (const [key, val] of Object.entries(body)) {
-            serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
-          }
-          setFormError(serverErrors.non_field_errors ?? null);
-          setErrors(serverErrors);
-          return;
-        }
-        if (res.status === 401) {
-          setFormError('Please log in again.');
-          return;
-        }
-        throw new Error(
-          res.status >= 500 ? 'Server error. Try again later.' : 'Could not create group.'
-        );
-      }
-
-      const created: Group = await res.json();
       setGroups(prev => [...prev, created]);
       closeModal();
     } catch (err) {
-      if (err instanceof TypeError) setFormError('Network error. Check your connection.');
-      else if (err instanceof Error) setFormError(err.message);
-      else setFormError('Something went wrong.');
+      if (!axios.isAxiosError(err)) {
+        setFormError('Something went wrong.');
+        return;
+      }
+
+      if (!err.response) {
+        setFormError('Network error. Check your connection.');
+        return;
+      }
+
+      const { status, data } = err.response;
+
+      if (status === 400 && data && typeof data === 'object') {
+        // DRF validation shape, e.g. { name: ["This field may not be blank."] }
+        const serverErrors: Errors = {};
+        for (const [key, val] of Object.entries(data)) {
+          serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
+        }
+        setFormError(serverErrors.non_field_errors ?? null);
+        setErrors(serverErrors);
+        return;
+      }
+
+      if (status === 401) {
+        setFormError('Please log in again.');
+        return;
+      }
+
+      setFormError(status >= 500 ? 'Server error. Try again later.' : 'Could not create group.');
     } finally {
       setSubmitting(false);
     }

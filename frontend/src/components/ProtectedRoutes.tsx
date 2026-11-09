@@ -37,7 +37,7 @@ function ProtectedRoutes({children}: {children: ReactNode}) {
     const refreshToken = async () => {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN);
         try{
-            const response = await api.post<refreshResponse>("/api/token/refresh", {refresh : refreshToken});
+            const response = await api.post<refreshResponse>("/api/token/refresh/", {refresh : refreshToken});
 
             if(response.status === 200){
                 localStorage.setItem(ACCESS_TOKEN, response.data.access);
@@ -68,7 +68,7 @@ function ProtectedRoutes({children}: {children: ReactNode}) {
         return <div>Loading...</div>;
     }
 
-    return isAuthenticated ? children : <Navigate to="/Login" />;
+    return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
 

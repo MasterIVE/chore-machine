@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
+import axios from "axios";
+import api, { ACCESS_TOKEN, REFRESH_TOKEN } from "../api";
 
 type Errors = Record<string, string>;
 
@@ -35,39 +37,46 @@ function Login() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+      const { data } = await api.post<{ access: string; refresh: string }>(
+        "/api/token/",
+        values
+      );
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-
-        if (res.status === 400) {
-          // DRF validation shape, e.g. { email: ["This field is required."] }
-          const serverErrors: Errors = {};
-          for (const [key, val] of Object.entries(body)) {
-            serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
-          }
-          setFormError(serverErrors.non_field_errors ?? null);
-          setErrors(serverErrors);
-          return;
-        }
-        if (res.status === 401) {
-          setFormError("Incorrect email or password.");
-          return;
-        }
-        throw new Error(
-          res.status >= 500 ? "Server error. Try again later." : "Sign in failed."
-        );
-      }
+      // Without these, every later request would be unauthenticated
+      localStorage.setItem(ACCESS_TOKEN, data.access);
+      localStorage.setItem(REFRESH_TOKEN, data.refresh);
 
       window.location.href = "/";
     } catch (err) {
-      if (err instanceof TypeError) setFormError("Network error. Check your connection.");
-      else if (err instanceof Error) setFormError(err.message);
-      else setFormError("Something went wrong.");
+      if (!axios.isAxiosError(err)) {
+        setFormError("Something went wrong.");
+        return;
+      }
+
+      if (!err.response) {
+        setFormError("Network error. Check your connection.");
+        return;
+      }
+
+      const { status, data } = err.response;
+
+      if (status === 400 && data && typeof data === "object") {
+        // DRF validation shape, e.g. { email: ["This field is required."] }
+        const serverErrors: Errors = {};
+        for (const [key, val] of Object.entries(data)) {
+          serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
+        }
+        setFormError(serverErrors.non_field_errors ?? null);
+        setErrors(serverErrors);
+        return;
+      }
+
+      if (status === 401) {
+        setFormError("Incorrect email or password.");
+        return;
+      }
+
+      setFormError(status >= 500 ? "Server error. Try again later." : "Sign in failed.");
     } finally {
       setSubmitting(false);
     }

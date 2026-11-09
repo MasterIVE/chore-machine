@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type SubmitEvent } from 'react';
+import axios from 'axios';
+import api from '../api';
 import { tasks as initialTasks } from '../data/mockTasks';
 import { members } from '../data/mockMembers';
 import Modal from '../components/addModal';
@@ -64,45 +66,48 @@ function GroupTasks() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/tasks/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: form.title.trim(), frequency: form.frequency }),
+      const { data: created } = await api.post<Task>('/api/tasks/', {
+        title: form.title.trim(),
+        frequency: form.frequency,
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-
-        if (res.status === 400) {
-          // DRF validation shape, e.g. { title: ["This field may not be blank."] }
-          const serverErrors: Errors = {};
-          for (const [key, val] of Object.entries(body)) {
-            serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
-          }
-          setFormError(serverErrors.non_field_errors ?? null);
-          setErrors(serverErrors);
-          return;
-        }
-        if (res.status === 401) {
-          setFormError('Please log in again.');
-          return;
-        }
-        if (res.status === 403) {
-          setFormError("You don't have permission to add tasks here.");
-          return;
-        }
-        throw new Error(
-          res.status >= 500 ? 'Server error. Try again later.' : 'Could not add task.'
-        );
-      }
-
-      const created: Task = await res.json();
       setTasks(prev => [...prev, created]);
       closeModal();
     } catch (err) {
-      if (err instanceof TypeError) setFormError('Network error. Check your connection.');
-      else if (err instanceof Error) setFormError(err.message);
-      else setFormError('Something went wrong.');
+      if (!axios.isAxiosError(err)) {
+        setFormError('Something went wrong.');
+        return;
+      }
+
+      if (!err.response) {
+        setFormError('Network error. Check your connection.');
+        return;
+      }
+
+      const { status, data } = err.response;
+
+      if (status === 400 && data && typeof data === 'object') {
+        // DRF validation shape, e.g. { title: ["This field may not be blank."] }
+        const serverErrors: Errors = {};
+        for (const [key, val] of Object.entries(data)) {
+          serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
+        }
+        setFormError(serverErrors.non_field_errors ?? null);
+        setErrors(serverErrors);
+        return;
+      }
+
+      if (status === 401) {
+        setFormError('Please log in again.');
+        return;
+      }
+
+      if (status === 403) {
+        setFormError("You don't have permission to add tasks here.");
+        return;
+      }
+
+      setFormError(status >= 500 ? 'Server error. Try again later.' : 'Could not add task.');
     } finally {
       setSubmitting(false);
     }

@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
+import axios from "axios";
+import api from "../api";
 
 type Errors = Record<string, string>;
 
@@ -37,39 +39,41 @@ function Register() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/register/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          email: values.email,
-          password: values.password,
-        }),
+      // axios: post(url, data, config). It sets JSON headers and
+      // stringifies the body for you.
+      await api.post("/api/users/register/", {
+        name: values.name,
+        email: values.email,
+        password: values.password,
       });
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-
-        if (res.status === 400) {
-          // DRF validation shape, e.g. { email: ["Already in use."] }
-          const serverErrors: Errors = {};
-          for (const [key, val] of Object.entries(body)) {
-            serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
-          }
-          setFormError(serverErrors.non_field_errors ?? null);
-          setErrors(serverErrors);
-          return;
-        }
-        throw new Error(
-          res.status >= 500 ? "Server error. Try again later." : "Registration failed."
-        );
-      }
 
       window.location.href = "/login";
     } catch (err) {
-      if (err instanceof TypeError) setFormError("Network error. Check your connection.");
-      else if (err instanceof Error) setFormError(err.message);
-      else setFormError("Something went wrong.");
+      if (!axios.isAxiosError(err)) {
+        setFormError("Something went wrong.");
+        return;
+      }
+
+      // No response at all: server down, wrong URL, or CORS block
+      if (!err.response) {
+        setFormError("Network error. Check your connection.");
+        return;
+      }
+
+      const { status, data } = err.response;
+
+      if (status === 400 && data && typeof data === "object") {
+        // DRF validation shape, e.g. { email: ["Already in use."] }
+        const serverErrors: Errors = {};
+        for (const [key, val] of Object.entries(data)) {
+          serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
+        }
+        setFormError(serverErrors.non_field_errors ?? null);
+        setErrors(serverErrors);
+        return;
+      }
+
+      setFormError(status >= 500 ? "Server error. Try again later." : "Registration failed.");
     } finally {
       setSubmitting(false);
     }

@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type SubmitEvent } from 'react';
+import axios from 'axios';
+import api from '../api';
 import { members as initialMembers } from '../data/mockMembers';
 import Modal from '../components/addModal';
 
@@ -52,45 +54,48 @@ function GroupMembers() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/members/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim(), role: form.role.trim() }),
+      const { data: created } = await api.post<Member>('/api/members/', {
+        name: form.name.trim(),
+        role: form.role.trim(),
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-
-        if (res.status === 400) {
-          // DRF validation shape, e.g. { name: ["This field may not be blank."] }
-          const serverErrors: Errors = {};
-          for (const [key, val] of Object.entries(body)) {
-            serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
-          }
-          setFormError(serverErrors.non_field_errors ?? null);
-          setErrors(serverErrors);
-          return;
-        }
-        if (res.status === 401) {
-          setFormError('Please log in again.');
-          return;
-        }
-        if (res.status === 403) {
-          setFormError("You don't have permission to add members.");
-          return;
-        }
-        throw new Error(
-          res.status >= 500 ? 'Server error. Try again later.' : 'Could not add member.'
-        );
-      }
-
-      const created: Member = await res.json();
       setMembers(prev => [...prev, created]);
       closeModal();
     } catch (err) {
-      if (err instanceof TypeError) setFormError('Network error. Check your connection.');
-      else if (err instanceof Error) setFormError(err.message);
-      else setFormError('Something went wrong.');
+      if (!axios.isAxiosError(err)) {
+        setFormError('Something went wrong.');
+        return;
+      }
+
+      if (!err.response) {
+        setFormError('Network error. Check your connection.');
+        return;
+      }
+
+      const { status, data } = err.response;
+
+      if (status === 400 && data && typeof data === 'object') {
+        // DRF validation shape, e.g. { name: ["This field may not be blank."] }
+        const serverErrors: Errors = {};
+        for (const [key, val] of Object.entries(data)) {
+          serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
+        }
+        setFormError(serverErrors.non_field_errors ?? null);
+        setErrors(serverErrors);
+        return;
+      }
+
+      if (status === 401) {
+        setFormError('Please log in again.');
+        return;
+      }
+
+      if (status === 403) {
+        setFormError("You don't have permission to add members.");
+        return;
+      }
+
+      setFormError(status >= 500 ? 'Server error. Try again later.' : 'Could not add member.');
     } finally {
       setSubmitting(false);
     }
