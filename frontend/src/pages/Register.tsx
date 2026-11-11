@@ -12,7 +12,7 @@ const FieldError = ({ msg }: { msg?: string }) =>
   ) : null;
 
 function Register() {
-  const [values, setValues] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [values, setValues] = useState({ username: "", email: "", password: "", confirm: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +22,9 @@ function Register() {
 
   const validate = (): Errors => {
     const e: Errors = {};
-    if (!values.name.trim()) e.name = "Name is required";
+    if (!values.username.trim()) e.username = "Username is required";
+    else if (!/^[\w.@+-]+$/.test(values.username.trim()))
+      e.username = "Letters, numbers and @ . + - _ only";
     if (!/^\S+@\S+\.\S+$/.test(values.email)) e.email = "Enter a valid email";
     if (values.password.length < 8) e.password = "At least 8 characters";
     if (values.confirm !== values.password) e.confirm = "Passwords don't match";
@@ -39,10 +41,8 @@ function Register() {
 
     setSubmitting(true);
     try {
-      // axios: post(url, data, config). It sets JSON headers and
-      // stringifies the body for you.
       await api.post("/api/users/register/", {
-        name: values.name,
+        username: values.username.trim(),
         email: values.email,
         password: values.password,
       });
@@ -63,12 +63,12 @@ function Register() {
       const { status, data } = err.response;
 
       if (status === 400 && data && typeof data === "object") {
-        // DRF validation shape, e.g. { email: ["Already in use."] }
+        // DRF validation shape, e.g. { username: ["A user with that username already exists."] }
         const serverErrors: Errors = {};
         for (const [key, val] of Object.entries(data)) {
           serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
         }
-        setFormError(serverErrors.non_field_errors ?? null);
+        setFormError(serverErrors.non_field_errors ?? serverErrors.detail ?? null);
         setErrors(serverErrors);
         return;
       }
@@ -103,7 +103,7 @@ function Register() {
       </div>
 
       <div className="flex-1 bg-sky flex items-center justify-center p-10">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3 w-full">
           <div>
             <h2 className="font-display text-xl text-navy-deep mb-1.5">Create your account</h2>
             <p className="text-sm text-slate mb-6">Takes about 30 seconds.</p>
@@ -115,10 +115,10 @@ function Register() {
             </p>
           )}
 
-          <label htmlFor="name" className={labelClass}>Full name:</label>
-          <input id="name" name="name" value={values.name} onChange={handleChange}
-            aria-invalid={!!errors.name} className={inputClass} placeholder="Your Name" />
-          <FieldError msg={errors.name} />
+          <label htmlFor="username" className={labelClass}>Username:</label>
+          <input id="username" name="username" value={values.username} onChange={handleChange}
+            aria-invalid={!!errors.username} className={inputClass} placeholder="username" />
+          <FieldError msg={errors.username} />
 
           <label htmlFor="email" className={labelClass}>Email:</label>
           <input id="email" name="email" type="email" value={values.email} onChange={handleChange}

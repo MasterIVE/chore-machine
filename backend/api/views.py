@@ -11,7 +11,7 @@ from rest_framework.response import Response
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class GroupListCreateView(generics.ListCreateAPIView):
     queryset = Grouping.objects.all()

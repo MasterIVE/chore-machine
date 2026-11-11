@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import axios from "axios";
-import api, { ACCESS_TOKEN, REFRESH_TOKEN } from "../api";
+import api from "../api";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 
 type Errors = Record<string, string>;
 
@@ -12,7 +13,7 @@ const FieldError = ({ msg }: { msg?: string }) =>
   ) : null;
 
 function Login() {
-  const [values, setValues] = useState({ email: "", password: "" });
+  const [values, setValues] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +23,7 @@ function Login() {
 
   const validate = (): Errors => {
     const e: Errors = {};
-    if (!/^\S+@\S+\.\S+$/.test(values.email)) e.email = "Enter a valid email";
+    if (!values.username.trim()) e.username = "Username is required";
     if (!values.password) e.password = "Password is required";
     return e;
   };
@@ -39,10 +40,9 @@ function Login() {
     try {
       const { data } = await api.post<{ access: string; refresh: string }>(
         "/api/token/",
-        values
+        { username: values.username.trim(), password: values.password }
       );
 
-      // Without these, every later request would be unauthenticated
       localStorage.setItem(ACCESS_TOKEN, data.access);
       localStorage.setItem(REFRESH_TOKEN, data.refresh);
 
@@ -61,18 +61,18 @@ function Login() {
       const { status, data } = err.response;
 
       if (status === 400 && data && typeof data === "object") {
-        // DRF validation shape, e.g. { email: ["This field is required."] }
+        // DRF validation shape, e.g. { username: ["This field is required."] }
         const serverErrors: Errors = {};
         for (const [key, val] of Object.entries(data)) {
           serverErrors[key] = Array.isArray(val) ? String(val[0]) : String(val);
         }
-        setFormError(serverErrors.non_field_errors ?? null);
+        setFormError(serverErrors.non_field_errors ?? serverErrors.detail ?? null);
         setErrors(serverErrors);
         return;
       }
 
       if (status === 401) {
-        setFormError("Incorrect email or password.");
+        setFormError("Incorrect username or password.");
         return;
       }
 
@@ -106,7 +106,7 @@ function Login() {
       </div>
 
       <div className="flex-1 bg-sky flex items-center justify-center p-10">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3 w-full">
           <div className="flex flex-col items-center mb-6">
             <h2 className="font-display text-xl text-navy-deep mb-1.5">Welcome back</h2>
             <p className="text-sm text-slate mb-6">Sign in to your groups and chores.</p>
@@ -118,11 +118,11 @@ function Login() {
             </p>
           )}
 
-          <label htmlFor="email" className={labelClass}>Email</label>
-          <input id="email" name="email" type="email" value={values.email}
-            onChange={handleChange} aria-invalid={!!errors.email}
-            className={inputClass} placeholder="you@google.com" />
-          <FieldError msg={errors.email} />
+          <label htmlFor="username" className={labelClass}>Username</label>
+          <input id="username" name="username" value={values.username}
+            onChange={handleChange} aria-invalid={!!errors.username}
+            className={inputClass} placeholder="username" />
+          <FieldError msg={errors.username} />
 
           <label htmlFor="password" className={labelClass}>Password</label>
           <input id="password" name="password" type="password" value={values.password}
