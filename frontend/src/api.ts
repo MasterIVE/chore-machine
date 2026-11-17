@@ -1,7 +1,5 @@
 import axios from 'axios';
-
-export const ACCESS_TOKEN = 'access';
-export const REFRESH_TOKEN = 'refresh';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -10,6 +8,14 @@ const api = axios.create({
 // Attach the JWT to every request automatically
 api.interceptors.request.use(config => {
   const token = localStorage.getItem(ACCESS_TOKEN);
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+//temp
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem(ACCESS_TOKEN);
+  console.log("token:", token ? "found" : "MISSING", "key:", ACCESS_TOKEN);
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

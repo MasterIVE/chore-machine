@@ -4,6 +4,7 @@ import api from '../api';
 import { tasks as initialTasks } from '../data/mockTasks';
 import { members } from '../data/mockMembers';
 import Modal from '../components/addModal';
+import { useParams } from 'react-router-dom';
 
 const filters = ['All', 'Unassigned', 'Kitchen', 'Bathroom', 'Outdoor'] as const;
 
@@ -21,9 +22,11 @@ function GroupTasks() {
   const [tasks, setTasks] = useState(initialTasks);
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]>('All');
   const [isOpen, setIsOpen] = useState(false);
+  const { id } = useParams<{ id: string }>();
 
   // Add-task form state
-  const [form, setForm] = useState({ title: '', frequency: 'daily' });
+  const emptyForm = { title: '', frequency: 'daily', level: 1, description: '' };
+  const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -40,21 +43,30 @@ function GroupTasks() {
 
   const closeModal = () => {
     setIsOpen(false);
-    setForm({ title: '', frequency: 'daily' });
+    setForm(emptyForm);
     setErrors({});
     setFormError(null);
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (
+  e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const validate = (): Errors => {
-    const e: Errors = {};
-    if (!form.title.trim()) e.title = 'Task title is required';
-    else if (form.title.length > 100) e.title = 'Keep it under 100 characters';
-    if (!form.frequency) e.frequency = 'Choose a frequency';
-    return e;
-  };
+  const e: Errors = {};
+
+  if (!form.title.trim()) e.title = 'Task title is required';
+  else if (form.title.length > 100) e.title = 'Keep it under 100 characters';
+
+  if (!form.frequency) e.frequency = 'Choose a frequency';
+
+  const level = Number(form.level);
+  if (!Number.isInteger(level) || level < 1 || level > 5) {
+    e.level = 'Level must be a whole number from 1 to 5';
+  }
+
+  return e;
+};
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,6 +81,9 @@ function GroupTasks() {
       const { data: created } = await api.post<Task>('/api/tasks/', {
         title: form.title.trim(),
         frequency: form.frequency,
+        level: Number(form.level),
+        description: form.description.trim(),
+        group: id,
       });
 
       setTasks(prev => [...prev, created]);
@@ -215,6 +230,33 @@ function GroupTasks() {
             <option value="yearly">Yearly</option>
           </select>
           <FieldError msg={errors.frequency} />
+
+          <label htmlFor="taskDescription">Task Description</label>
+          <textarea
+            id="taskDescription"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            aria-invalid={!!errors.description}
+            placeholder="Enter task description"
+            className={inputClass}
+          />
+          <FieldError msg={errors.description} />
+
+          <label htmlFor="taskLevel">Task Level (1-5)</label>
+          <input
+            type="number"
+            id="taskLevel"
+            name="level"
+            value={form.level}
+            onChange={handleChange}
+            aria-invalid={!!errors.level}
+            placeholder="Enter task level"
+            className={inputClass}
+            min={1}
+            max={5}
+          />
+          <FieldError msg={errors.level} />
 
           <button
             type="submit"

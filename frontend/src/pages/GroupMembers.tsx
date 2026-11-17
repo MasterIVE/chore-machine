@@ -3,6 +3,7 @@ import axios from 'axios';
 import api from '../api';
 import { members as initialMembers } from '../data/mockMembers';
 import Modal from '../components/addModal';
+import { useParams } from 'react-router-dom';
 
 type Member = (typeof initialMembers)[number];
 type Errors = Record<string, string>;
@@ -24,6 +25,8 @@ function GroupMembers() {
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const { id } = useParams<{ id: string }>();
 
   const closeModal = () => {
     setIsOpen(false);
@@ -57,6 +60,7 @@ function GroupMembers() {
       const { data: created } = await api.post<Member>('/api/members/', {
         name: form.name.trim(),
         role: form.role.trim(),
+        group: id,
       });
 
       setMembers(prev => [...prev, created]);

@@ -28,6 +28,7 @@ class GroupListCreateView(generics.ListCreateAPIView):
         else:
             print(serializer.errors)
 
+
 class GroupDeleteView(generics.DestroyAPIView):
     queryset = Grouping.objects.all()
     serializer_class = GroupSerializer

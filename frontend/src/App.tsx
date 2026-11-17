@@ -41,8 +41,8 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/groups" replace />} />
-          <Route path="groups" element={<Groups />} />
+          <Route index element={<Navigate to="/groups/:id" replace />} />
+          <Route path="groups/:id" element={<Groups />} />
 
           {/* Everything under a specific group */}
           <Route path="groups/:id/tasks" element={<GroupTasks />} />

@@ -22,12 +22,13 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grouping
         fields = ['id', 'name']
+   
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'taskName', 'description', 'created_at', 'group', 'status']
+        fields = ['id', 'name', 'description', 'created_at', 'group', 'level', 'frequency']
 
 class MemberSerializer(serializers.ModelSerializer):
     class Meta:
