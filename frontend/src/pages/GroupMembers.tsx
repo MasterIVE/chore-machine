@@ -77,6 +77,7 @@ function GroupMembers() {
       }
 
       const { status, data } = err.response;
+      console.log("API error:", status, JSON.stringify(data));
 
       if (status === 400 && data && typeof data === 'object') {
         // DRF validation shape, e.g. { name: ["This field may not be blank."] }

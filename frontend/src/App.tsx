@@ -1,35 +1,31 @@
 import './App.css'
-import ProtectedRoute from './components/ProtectedRoutes'  
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import NotFound from './pages/NotFound'
+import ProtectedRoute from './components/ProtectedRoutes'
+import MainLayout from './layouts/Mainlayout'
+import GroupLayout from './layouts/GroupLayout'
+import AssignLayout from './pages/AssignLayout.tsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Groups from './pages/Groups'
 import GroupTasks from './pages/GroupTasks'
 import GroupMembers from './pages/GroupMembers'
-import MainLayout from './layouts/Mainlayout'
-import AssignLayout from './layouts/AssignLayout'
 import AssignSimple from './pages/AssignSimple'
 import AssignAdvanced from './pages/AssignAdvanced'
 import Profile from './pages/Profile'
+import NotFound from './pages/NotFound'
 
+function Logout() {
+  localStorage.clear()
+  return <Navigate to="/login" replace />
+}
 
-
- function Logout(){
-     localStorage.clear()
-     return <Navigate to ="/Login" />
-   }
-
-  function RegisterAndLogout(){
-    localStorage.clear()
-    return <Register />
-  }
+function RegisterAndLogout() {
+  localStorage.clear()
+  return <Register />
+}
 
 function App() {
-
-
   return (
-    
     <BrowserRouter>
       <Routes>
         {/* Protected area: everything here requires a valid token */}
@@ -41,18 +37,21 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/groups/:id" replace />} />
-          <Route path="groups/:id" element={<Groups />} />
+          <Route index element={<Navigate to="/groups" replace />} />
+          <Route path="groups" element={<Groups />} />
 
-          {/* Everything under a specific group */}
-          <Route path="groups/:id/tasks" element={<GroupTasks />} />
-          <Route path="groups/:id/members" element={<GroupMembers />} />
+          {/* One parent for everything under a specific group */}
+          <Route path="groups/:id" element={<GroupLayout />}>
+            <Route index element={<Navigate to="tasks" replace />} />
+            <Route path="tasks" element={<GroupTasks />} />
+            <Route path="members" element={<GroupMembers />} />
 
-          {/* Assign is a mini-layout with two sub-views */}
-          <Route path="groups/:id/assign" element={<AssignLayout />}>
-            <Route index element={<Navigate to="simple" replace />} />
-            <Route path="simple" element={<AssignSimple />} />
-            <Route path="advanced" element={<AssignAdvanced />} />
+            {/* Assign is a mini-layout with two sub-views */}
+            <Route path="assign" element={<AssignLayout />}>
+              <Route index element={<Navigate to="simple" replace />} />
+              <Route path="simple" element={<AssignSimple />} />
+              <Route path="advanced" element={<AssignAdvanced />} />
+            </Route>
           </Route>
 
           <Route path="profile/:id" element={<Profile />} />
@@ -65,7 +64,6 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-    
   )
 }
 

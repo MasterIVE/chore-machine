@@ -1,14 +1,7 @@
-import { NavLink, useParams } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { groups } from "../data/mockGroups";
 
-function DesktopShell({ children }: { children: React.ReactNode }) {
-  const { id } = useParams<{ id: string }>();
-
-  const tabClass = ({ isActive }: { isActive: boolean }) =>
-    `px-4 py-2 rounded-lg text-[13px] font-display font-semibold ${
-      isActive ? 'bg-navy text-white' : 'text-slate hover:bg-white/60'
-    }`;
-
+function DesktopShell() {
   return (
     <div className="flex min-h-screen bg-sky font-body text-ink">
       <aside className="w-56 shrink-0 bg-navy-deep text-white p-5 flex flex-col">
@@ -34,25 +27,19 @@ function DesktopShell({ children }: { children: React.ReactNode }) {
           </NavLink>
         ))}
 
-        <button className="mt-auto bg-salmon text-ink font-display font-semibold text-[13px] py-2.5 rounded-lg hover:bg-white/8 hover:*:text-white transition-colors">
-          <a href={`/groups/${id}`}>+ New group</a>
-        </button>
+        <Link
+          to="/groups"
+          className="mt-auto text-center bg-salmon text-ink font-display font-semibold text-[13px] py-2.5 rounded-lg hover:bg-white/8 transition-colors"
+        >
+          + New group
+        </Link>
       </aside>
 
       <main className="flex-1 p-6 relative">
-       {/* this is where the title will be */}   
-
-        {id && (
-          <div className="flex gap-1.5 mb-4">
-            <NavLink to={`/groups/${id}/tasks`} className={tabClass}>Tasks</NavLink>
-            <NavLink to={`/groups/${id}/members`} className={tabClass}>Members</NavLink>
-            <NavLink to={`/groups/${id}/assign`} className={tabClass}>Assign</NavLink>
-          </div>
-        )}
-
-        {children}
+        <Outlet />
       </main>
     </div>
   );
 }
+
 export default DesktopShell;

@@ -1,7 +1,25 @@
 // layouts/MobileShell.tsx
-import { NavLink } from 'react-router-dom';
+import { NavLink, Outlet, useMatch } from 'react-router-dom';
 
-function MobileShell({ children }: { children: React.ReactNode }) {
+function NavItem({ to, label, end }: { to: string; label: string; end?: boolean }) {
+  return (
+    <NavLink to={to} end={end} className="flex flex-col items-center gap-1 text-[9.5px] font-mono">
+      {({ isActive }) => (
+        <>
+          <span className={`w-4.5 h-4.5 rounded-md ${isActive ? 'bg-salmon' : 'bg-slate-light'}`} />
+          <span className={isActive ? 'text-navy-deep font-semibold' : 'text-slate'}>{label}</span>
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+function MobileShell() {
+  // This layout sits above the groups/:id route, so useParams() can't see the id.
+  // useMatch reads it straight from the URL instead.
+  const match = useMatch('/groups/:id/*');
+  const groupId = match?.params.id;
+
   return (
     <div className="flex flex-col min-h-screen bg-sky font-body text-ink">
       {/* Top bar — no sidebar on mobile */}
@@ -12,45 +30,25 @@ function MobileShell({ children }: { children: React.ReactNode }) {
 
       {/* Page content slot */}
       <main className="flex-1 overflow-y-auto p-3.5">
-        {children}   {/* ← Outlet lands here instead */}
+        <Outlet />
       </main>
 
-      {/* Bottom nav — the thing that replaces the sidebar entirely */}
+      {/* Bottom nav — replaces the sidebar */}
       <nav className="bg-white border-t border-slate-light flex justify-around py-2.5">
-        <NavLink to="/groups" className="flex flex-col items-center gap-1 text-[9.5px] font-mono">
-          {({ isActive }) => (
-            <>
-              <span className={`w-4.5 h-4.5 rounded-md ${isActive ? 'bg-salmon' : 'bg-slate-light'}`} />
-              <span className={isActive ? 'text-navy-deep font-semibold' : 'text-slate'}>Home</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/groups/:id/tasks" className="flex flex-col items-center gap-1 text-[9.5px] font-mono">
-          {({ isActive }) => (
-            <>
-              <span className={`w-4.5 h-4.5 rounded-md ${isActive ? 'bg-salmon' : 'bg-slate-light'}`} />
-              <span className={isActive ? 'text-navy-deep font-semibold' : 'text-slate'}>Chores</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/groups/:id/assign/simple" className="flex flex-col items-center gap-1 text-[9.5px] font-mono">
-          {({ isActive }) => (
-            <>
-              <span className={`w-4.5 h-4.5 rounded-md ${isActive ? 'bg-salmon' : 'bg-slate-light'}`} />
-              <span className={isActive ? 'text-navy-deep font-semibold' : 'text-slate'}>Assign</span>
-            </>
-          )}
-        </NavLink>
-        <NavLink to="/profile" className="flex flex-col items-center gap-1 text-[9.5px] font-mono">
-          {({ isActive }) => (
-            <>
-              <span className={`w-4.5 h-4.5 rounded-md ${isActive ? 'bg-salmon' : 'bg-slate-light'}`} />
-              <span className={isActive ? 'text-navy-deep font-semibold' : 'text-slate'}>Profile</span>
-            </>
-          )}
-        </NavLink>
+        <NavItem to="/groups" label="Home" end />
+
+        {/* Only meaningful once a group is open */}
+        {groupId && (
+          <>
+            <NavItem to={`/groups/${groupId}/tasks`} label="Chores" />
+            <NavItem to={`/groups/${groupId}/assign`} label="Assign" />
+          </>
+        )}
+
+        <NavItem to="/profile/me" label="Profile" />
       </nav>
     </div>
   );
 }
-export default MobileShell
+
+export default MobileShell;

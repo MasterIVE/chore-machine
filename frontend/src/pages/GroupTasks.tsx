@@ -31,6 +31,8 @@ function GroupTasks() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  
+
   const toggleDone = (id: string) => {
     setTasks(prev =>
       prev.map(t => (t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t))
@@ -79,7 +81,7 @@ function GroupTasks() {
     setSubmitting(true);
     try {
       const { data: created } = await api.post<Task>('/api/tasks/', {
-        title: form.title.trim(),
+        name: form.title.trim(),
         frequency: form.frequency,
         level: Number(form.level),
         description: form.description.trim(),
@@ -99,7 +101,11 @@ function GroupTasks() {
         return;
       }
 
+
+      //tests
       const { status, data } = err.response;
+      console.log("API error:", status, JSON.stringify(data));
+      console.log("group id:", JSON.stringify(id), "url:", window.location.pathname);
 
       if (status === 400 && data && typeof data === 'object') {
         // DRF validation shape, e.g. { title: ["This field may not be blank."] }

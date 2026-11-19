@@ -4,6 +4,7 @@ import axios from 'axios';
 import api from '../api';
 import { groups as initialGroups } from '../data/mockGroups';
 import Modal from '../components/addModal';
+import { Link } from 'react-router-dom';
 
 type Group = (typeof initialGroups)[number];
 type Errors = Record<string, string>;
@@ -141,7 +142,7 @@ function Groups() {
               />
             ) : (
               <div>
-                <div className="font-display font-semibold text-sm">{g.name}</div>
+                <Link to={`/groups/${g.id}`}>{g.name}</Link>
                 <div className="text-[11px] font-mono text-slate mt-0.5">{g.taskCount} chores</div>
               </div>
             )}
